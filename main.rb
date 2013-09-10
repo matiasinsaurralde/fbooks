@@ -9,10 +9,19 @@ def get( url )
 	return `curl -s -A "#{USER_AGENT}" -b cookies "https://m.facebook.com/#{url}"`
 end
 
+def get_fbid( name )
+	raw = get("/#{name}")
+	profile_url = Nokogiri::HTML( raw ).css('a').css('.flyoutItem').first.attribute('href').to_s
+	profile_url.split('/')[3].to_i
+end
+
 def get_books( fbid )
 
-	#raw = get( "/efrain.martinezcuevas" )
-	#page = Nokogiri
+	if fbid.to_i == 0
+		fbid = get_fbid( fbid )
+	end
+
+	p fbid
 
 	raw = get( "timeline/app_section/?section_token=#{fbid}%3A332953846789204" )
 	page, collections, titles = Nokogiri::HTML( raw ), {}, { :current => [], :wishlist => [] }
@@ -24,6 +33,8 @@ def get_books( fbid )
 			collections[ :wishlist ] = link
 		end
 	end
+
+	p collections
 
 	collections.each do |collection, url|
 		raw = get( url )
@@ -39,4 +50,4 @@ def get_books( fbid )
 	titles
 end
 
-p get_books( 100000292737051 )
+p get_books( 'somename' )
