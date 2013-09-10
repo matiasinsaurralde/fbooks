@@ -28,12 +28,15 @@ def get_friends()
 
 		links.each do |a|
 
-			name = {}, a.inner_text()
+			name = a.inner_text()
 
 			if !name.empty?
-				friends.store( name, a.attribute('href').to_s.split('?').first )
+				profile_name = a.attribute('href').to_s.split('?').first.gsub('/', '')
+				fbid = get_fbid( profile_name )
+				friends.store( fbid, { nickname: profile_name, realname: name } )
 			end
 		end
+
 	end
 
 	friends
@@ -88,4 +91,4 @@ def get_books( fbid )
 end
 
 # pp get_books( 'somename' )
-# get_friends
+get_friends
