@@ -2,13 +2,42 @@ require 'rubygems'
 require 'bundler/setup'
 
 require 'nokogiri'
+require 'oj'
 
-require 'pp'
-
+USER_FBID = 'matias.insaurralde'
 USER_AGENT = 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36'
 
 def get( url )
 	return `curl -s -A "#{USER_AGENT}" -b cookies "https://m.facebook.com/#{url}"`
+end
+
+def get_friends()
+
+	keep_scraping, friends = true, {}
+
+	while keep_scraping
+
+		raw = get( "/#{USER_FBID}?v=friends&mutual&startindex=#{friends.size}&__ajax__=" )
+		json = Oj.load( raw[9, raw.size] )
+
+		links = Nokogiri::HTML( json['payload']['actions'][0]['html'] ).css('a')
+
+		if links.size == 0
+			keep_scraping = false
+		end
+
+		links.each do |a|
+
+			name = {}, a.inner_text()
+
+			if !name.empty?
+				friends.store( name, a.attribute('href').to_s.split('?').first )
+			end
+		end
+	end
+
+	friends
+
 end
 
 def get_fbid( name )
@@ -58,4 +87,5 @@ def get_books( fbid )
 	titles
 end
 
-pp get_books( 'somename' )
+# pp get_books( 'somename' )
+# get_friends
