@@ -4,6 +4,8 @@ require 'bundler/setup'
 require 'nokogiri'
 require 'oj'
 
+require 'pp'
+
 USER_FBID = 'matias.insaurralde'
 USER_AGENT = 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36'
 
@@ -12,44 +14,7 @@ def get( url )
 end
 
 def get_friends()
-
-	keep_scraping, friends = true, {}
-	248.times { |n| friends.store(n, nil) }
-
-	while keep_scraping
-
-		raw = get( "/#{USER_FBID}?v=friends&mutual&startindex=#{friends.size}&__ajax__=" )
-		json = Oj.load( raw[9, raw.size] )
-
-		links = Nokogiri::HTML( json['payload']['actions'][0]['html'] ).css('a')
-
-		if links.size == 0
-			keep_scraping = false
-		end
-
-		links.each do |a|
-
-			name = a.inner_text()
-
-			if !name.empty?
-
-				profile_name = a.attribute('href').to_s.split('?').first.gsub('/', '')
-
-				if profile_name.include?('profile.php')
-					fbid = a.attribute('href').to_s.match(/\?id=(.*)&f/)[1].to_i
-				else
-					fbid = get_fbid( profile_name )
-				end
-				friends.store( fbid, { nickname: profile_name, realname: name } )
-			end
-		end
-
-		puts friends.size
-
-	end
-
-	friends
-
+	# use koala ;-)
 end
 
 def get_fbid( name )
@@ -99,12 +64,8 @@ def get_books( fbid )
 	titles
 end
 
-# pp get_books( 'somename' )
-
-if !File.exists?('friends.json')
-	open('friends.json', 'w') do |f|
-		f.print( Oj.dump(get_friends) )
-	end
-end
-
 friends = Oj.load( File.read('friends.json') )
+
+friends.each do |fbid, name|
+	pp get_books( fbid )
+end
