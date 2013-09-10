@@ -11,11 +11,14 @@ end
 
 def get_books( fbid )
 
-	raw = get( "timeline/app_section/?section_token=779301143%3A332953846789204&__user=#{fbid}" )
+	#raw = get( "/efrain.martinezcuevas" )
+	#page = Nokogiri
+
+	raw = get( "timeline/app_section/?section_token=#{fbid}%3A332953846789204" )
 	page, collections, titles = Nokogiri::HTML( raw ), {}, { :current => [], :wishlist => [] }
 
-	page.css('.touchableArea').map { |a| a.attribute('href').to_s  }.each do |link|
-		if link.include?('A14')
+	page.css('.touchableArea').map { |a| a.attribute('href').to_s  }.each_with_index do |link, index|
+		if index == 0
 			collections[ :current ] = link
 		else
 			collections[ :wishlist ] = link
@@ -36,4 +39,4 @@ def get_books( fbid )
 	titles
 end
 
-p get_books( 602978659 )
+p get_books( 100000292737051 )
