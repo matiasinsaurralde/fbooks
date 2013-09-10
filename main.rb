@@ -3,6 +3,8 @@ require 'bundler/setup'
 
 require 'nokogiri'
 
+require 'pp'
+
 USER_AGENT = 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36'
 
 def get( url )
@@ -21,20 +23,26 @@ def get_books( fbid )
 		fbid = get_fbid( fbid )
 	end
 
-	p fbid
-
 	raw = get( "timeline/app_section/?section_token=#{fbid}%3A332953846789204" )
-	page, collections, titles = Nokogiri::HTML( raw ), {}, { :current => [], :wishlist => [] }
+	page, collections, titles = Nokogiri::HTML( raw ), {}, { :read => [], :wish => [], :like => [] }
 
-	page.css('.touchableArea').map { |a| a.attribute('href').to_s  }.each_with_index do |link, index|
-		if index == 0
-			collections[ :current ] = link
-		else
-			collections[ :wishlist ] = link
+	page.css('.touchableArea').map.each do |a|
+
+		link = a.attribute('href').to_s
+		label = a.inner_text
+
+		if label.include?('Me gusta')
+			collections[ :like ] = link
+		end
+
+		if label.include?('Leer')
+			collections[ :read ] = link
+		end
+
+		if label.include?('Quiero leer')
+			collections[ :wish ] = link
 		end
 	end
-
-	p collections
 
 	collections.each do |collection, url|
 		raw = get( url )
@@ -50,4 +58,4 @@ def get_books( fbid )
 	titles
 end
 
-p get_books( 'somename' )
+pp get_books( 'somename' )
