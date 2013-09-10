@@ -14,6 +14,7 @@ end
 def get_friends()
 
 	keep_scraping, friends = true, {}
+	248.times { |n| friends.store(n, nil) }
 
 	while keep_scraping
 
@@ -31,11 +32,19 @@ def get_friends()
 			name = a.inner_text()
 
 			if !name.empty?
+
 				profile_name = a.attribute('href').to_s.split('?').first.gsub('/', '')
-				fbid = get_fbid( profile_name )
+
+				if profile_name.include?('profile.php')
+					fbid = a.attribute('href').to_s.match(/\?id=(.*)&f/)[1].to_i
+				else
+					fbid = get_fbid( profile_name )
+				end
 				friends.store( fbid, { nickname: profile_name, realname: name } )
 			end
 		end
+
+		puts friends.size
 
 	end
 
@@ -91,4 +100,11 @@ def get_books( fbid )
 end
 
 # pp get_books( 'somename' )
-get_friends
+
+if !File.exists?('friends.json')
+	open('friends.json', 'w') do |f|
+		f.print( Oj.dump(get_friends) )
+	end
+end
+
+friends = Oj.load( File.read('friends.json') )
