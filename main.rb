@@ -4,8 +4,6 @@ require 'bundler/setup'
 require 'nokogiri'
 require 'oj'
 
-require 'pp'
-
 USER_FBID = 'matias.insaurralde'
 USER_AGENT = 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36'
 
@@ -64,8 +62,16 @@ def get_books( fbid )
 	titles
 end
 
-friends = Oj.load( File.read('friends.json') )
+friends, books = Oj.load( File.read('friends.json') ), {}
 
 friends.each do |fbid, name|
-	pp get_books( fbid )
+	books[fbid] = get_books( fbid )
+	puts "#{name}: "
+	puts books[fbid].inspect
 end
+
+open('books.json', 'w') do |f|
+	f.print( Oj.dump( books ) )
+end
+
+puts "Done."
